@@ -16,6 +16,7 @@
     "dev": "webpack serve --content-base public"
   },
   "dependencies": {
+    "matter-js": "^0.18.0",
     "p5-svelte": "^3.1.2"
   }
 }

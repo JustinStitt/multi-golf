@@ -1,11 +1,15 @@
 <script>
   import Golf from "./Components/Golf";
-  let golf;
 </script>
 
 <main>
   <h1>Multi Golf ⛳</h1>
-  <Golf bind:this={golf} />
+  <div class="games">
+    <Golf ball_start_pos={{ x: 250, y: 250 }} />
+    <Golf flag_pos={{ x: 145, y: 241 }} />
+    <Golf flag_pos={{ x: 55, y: 114 }} />
+    <Golf flag_pos={{ x: 200, y: 30 }} />
+  </div>
 </main>
 
 <style>
@@ -23,5 +27,10 @@
     margin: 0;
     width: 100%;
     background-color: teal;
+  }
+
+  .games {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 </style>
