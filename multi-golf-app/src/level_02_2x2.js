@@ -40,5 +40,5 @@ const tile3 = () => {
 
 export function setupLevel() {
   let objs = [tile0(), tile1(), tile2(), tile3()];
-  return objs;
+  return {objs: objs, meta: {par: 2}};
 }

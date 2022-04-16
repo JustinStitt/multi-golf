@@ -56,7 +56,10 @@
     style="width: 30%; display: flex; justify-content: space-between; margin-top: 10px;"
   >
     <button on:click={swap_level}> Next Level </button>
-    <h3>Stroke: {strokes}</h3>
+    <h3>
+      Current Level: {current_level + 1} | Par: {level_data[current_level].meta
+        .par} Stroke: {strokes}
+    </h3>
     <!-- <input type="number" bind:value={current_level} style="margin-top: 10px;" />
   <input type="number" bind:value={num} style="margin-top: 10px;" /> -->
   </div>
