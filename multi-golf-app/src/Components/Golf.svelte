@@ -361,17 +361,19 @@
     World.clear(world);
     Engine.clear(engine);
     setup(canv);
+    stroke(-1); // reset stroke
   };
 
   $: reset(level_data);
+
   onMount(() => {
     mounted = true;
   });
 
-  const stroke = () => {
+  const stroke = (incr = 1) => {
     if (id) return;
     dispatch("stroke", {
-      inc: 1,
+      inc: incr,
     });
   };
 </script>

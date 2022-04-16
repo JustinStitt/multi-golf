@@ -23,8 +23,10 @@
     current_level = (current_level + 1) % level_data.length;
   };
 
-  const handleStroke = () => {
-    strokes += 1;
+  const handleStroke = (e) => {
+    let inc = e.detail.inc;
+    if (inc == -1) strokes = 0;
+    else strokes += inc;
   };
 </script>
 
