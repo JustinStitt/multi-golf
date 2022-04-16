@@ -2,6 +2,7 @@
   import P5 from "p5-svelte";
   import * as matter from "matter-js";
   import * as howler from "howler";
+  import { onMount } from "svelte";
 
   var Engine = matter.Engine;
   var Bodies = matter.Bodies;
@@ -10,9 +11,11 @@
 
   var engine;
   var world;
-  export let width = 300,
+  export let size = 300;
+  let width = 300,
     height = 300;
 
+  export let level_data;
   export let id = 1;
 
   export let ball_start_pos = { x: 30, y: 30 };
@@ -103,82 +106,61 @@
   let flag_image;
 
   let walls = [];
+
+  function matterjs_setup() {
+    /* matter-js */
+    engine = Engine.create();
+    world = engine.world;
+    ball_body = Bodies.circle(ball_start_pos.x, ball_start_pos.y, ball.d / 2, {
+      restitution: 1.0,
+      friction: 0.2,
+      isStatic: false,
+    });
+    ball.x = ball_body.position.x;
+    ball.y = ball_body.position.y;
+
+    World.add(world, [ball_body, ...setupWalls()]);
+    setupLevel();
+    world.gravity.y = 0;
+    matter.Resolver._restingThresh = 0.00001;
+    Engine.run(engine);
+    matter.Events.on(engine, "collisionEnd", handleHit);
+  }
+
+  const setup = (p5) => {
+    p5.createCanvas(width, height);
+    p5.frameRate(60);
+    bg = p5.loadImage("canv-bg-1.png");
+    ball_image = p5.loadImage("canv-ball.png");
+    flag_image = p5.loadImage("canv-flag.png");
+    flag.x = flag_pos.x;
+    flag.y = flag_pos.y;
+    canv = p5;
+    matterjs_setup();
+  };
+
   export const sketch = (p5) => {
     p5.setup = () => {
-      p5.createCanvas(width, height);
-      p5.frameRate(60);
-      bg = p5.loadImage("canv-bg-1.png");
-      ball_image = p5.loadImage("canv-ball.png");
-      flag_image = p5.loadImage("canv-flag.png");
-      canv = p5;
-      matterjs_setup();
+      setup(p5);
     };
 
-    function matterjs_setup() {
-      /* matter-js */
-      engine = Engine.create();
-      world = engine.world;
-      ball_body = Bodies.circle(ball.x, ball.y, ball.d / 2, {
-        restitution: 1.0,
-        friction: 0.2,
-        isStatic: false,
-      });
-      let wall_params = {
-        restitution: 1.0,
-        isStatic: true,
-      };
-      let wall_thickness = 1;
-      let top_wall = Bodies.rectangle(
-        width / 2,
-        0,
-        width,
-        wall_thickness,
-        wall_params
-      );
-      let bot_wall = Bodies.rectangle(
-        width / 2,
-        height,
-        width,
-        wall_thickness,
-        wall_params
-      );
-      let right_wall = Bodies.rectangle(
-        width,
-        height / 2,
-        wall_thickness,
-        height,
-        wall_params
-      );
-      let left_wall = Bodies.rectangle(
-        0,
-        height / 2,
-        wall_thickness,
-        height,
-        wall_params
-      );
-
-      walls = [top_wall, bot_wall, right_wall, left_wall];
-      World.add(world, [ball_body, ...walls]);
-      world.gravity.y = 0;
-      matter.Resolver._restingThresh = 0.00001;
-      Engine.run(engine);
-      matter.Events.on(engine, "collisionEnd", handleHit);
-    }
-
     p5.draw = () => {
-      //p5.background(240, 248, 255);
+      p5.push();
+      p5.resizeCanvas(size, size);
+      p5.scale(size / width, size / height);
       p5.background(bg);
       flag.draw(p5);
       ball.draw(p5);
-      // drawWalls(p5);
+      drawWalls(p5);
+      drawLevelObjects(p5);
       if (mouse_pressed) {
-        // drawArrow2(p5);
         let v0 = p5.createVector(ball.x, ball.y);
         let ep_x = (mouse_drag.start.x - p5.mouseX) / 3;
         let ep_y = (mouse_drag.start.y - p5.mouseY) / 3;
         let v1 = p5.createVector(ep_x, ep_y);
         drawArrow(p5, v0, v1);
       }
+      p5.pop();
     };
 
     p5.mousePressed = () => {
@@ -193,6 +175,10 @@
       mouse_pressed = false;
       mouse_drag.end = mpos;
       handleMouseDrag();
+    };
+
+    p5.keyPressed = () => {
+      reset();
     };
   };
 
@@ -218,6 +204,76 @@
     p5.triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
     p5.pop();
   }
+
+  const setupWalls = () => {
+    let wall_params = {
+      restitution: 1.0,
+      isStatic: true,
+    };
+    let wall_thickness = 1;
+    let top_wall = Bodies.rectangle(
+      width / 2,
+      0,
+      width,
+      wall_thickness,
+      wall_params
+    );
+    let bot_wall = Bodies.rectangle(
+      width / 2,
+      height,
+      width,
+      wall_thickness,
+      wall_params
+    );
+    let right_wall = Bodies.rectangle(
+      width,
+      height / 2,
+      wall_thickness,
+      height,
+      wall_params
+    );
+    let left_wall = Bodies.rectangle(
+      0,
+      height / 2,
+      wall_thickness,
+      height,
+      wall_params
+    );
+
+    walls = [top_wall, bot_wall, right_wall, left_wall];
+    return walls;
+  };
+
+  const setupLevel = () => {
+    // ball_body.position = ball_start_pos;
+    if (!level_data) return;
+    World.add(world, [...level_data]);
+  };
+
+  const drawLevelObjects = (p5) => {
+    if (!level_data) return;
+    let objs = level_data;
+    // objs.forEach((elem) => {
+    //   var vertices = elem.vertices;
+    //   p5.fill(255);
+    //   p5.beginShape();
+    //   for (var i = 0; i < vertices.length; i++) {
+    //     p5.vertex(vertices[i].x, vertices[i].y);
+    //   }
+    //   p5.endShape();
+    // });
+    p5.push();
+    p5.fill(240, 248, 255);
+    p5.strokeWeight(2);
+    p5.stroke(0);
+    objs.forEach((elem) => {
+      let { min, max } = elem.bounds;
+      let w = max.x - min.x;
+      let h = max.y - min.y;
+      p5.rect(elem.position.x - w / 2, elem.position.y - h / 2, w, h);
+    });
+    p5.pop();
+  };
 
   const drawWalls = (p5) => {
     walls.forEach((elem) => {
@@ -264,20 +320,41 @@
     if (win) return;
     hit_sound.play();
   };
+
+  let mounted = false;
+  const reset = () => {
+    if (!mounted) return;
+    win = false;
+    World.clear(world);
+    Engine.clear(engine);
+    setup(canv);
+  };
+
+  $: reset(level_data);
+  onMount(() => {
+    mounted = true;
+  });
 </script>
 
 <!-- begin HTML -->
 <div class="canvas" class:win>
-  <P5 {sketch} />
+  <div class="rounded">
+    <P5 {sketch} />
+  </div>
 </div>
 
 <!-- end HTML -->
 <style>
   .canvas {
-    margin: 8px;
+    margin: 3px;
     padding: 8px 8px 4px 8px; /*top right bottom left*/
-    border-radius: 4px;
-    background-color: rebeccapurple;
+    border-radius: 15px;
+    background-color: teal;
+  }
+
+  .rounded {
+    border-radius: 15px;
+    overflow: hidden;
   }
 
   .win {
