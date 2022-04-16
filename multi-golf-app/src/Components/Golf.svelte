@@ -222,29 +222,29 @@
     let wall_thickness = 1;
     let top_wall = Bodies.rectangle(
       width / 2,
-      0,
+      -height / 2,
       width,
-      wall_thickness,
+      wall_thickness + height,
       wall_params
     );
     let bot_wall = Bodies.rectangle(
       width / 2,
-      height,
+      height + height / 2,
       width,
-      wall_thickness,
+      wall_thickness + height,
       wall_params
     );
     let right_wall = Bodies.rectangle(
-      width,
+      width + width / 2,
       height / 2,
-      wall_thickness,
+      wall_thickness + width,
       height,
       wall_params
     );
     let left_wall = Bodies.rectangle(
-      0,
+      -width / 2,
       height / 2,
-      wall_thickness,
+      wall_thickness + width,
       height,
       wall_params
     );
@@ -323,6 +323,15 @@
       end = mouse_drag.end;
     let dx = start.x - end.x;
     let dy = start.y - end.y;
+    let dist = Math.abs(dx) + Math.abs(dy);
+    let max_dist = 1000;
+    if (dist > max_dist) {
+      let og_x_ratio = Math.abs(dx) / dist;
+      let og_y_ratio = Math.abs(dy) / dist;
+      dx = og_x_ratio * max_dist * (dx > 0 ? 1 : -1);
+      dy = og_y_ratio * max_dist * (dy > 0 ? 1 : -1);
+    }
+    console.log("dist: ", dist);
     let minimum_drag_distance = 40;
     if (Math.abs(dx) + Math.abs(dy) < minimum_drag_distance) return;
     stroke(); // send stroke to App.svelte via dispatch (if we are id 0)
@@ -332,8 +341,7 @@
     let total_force = Math.abs(fx) + Math.abs(fy);
     let sign_x = fx > 0 ? 1 : -1,
       sign_y = fy > 0 ? 1 : -1;
-    if (Math.abs(fx) > threshhold) fx = sign_x * threshhold;
-    if (Math.abs(fy) > threshhold) fy = sign_y * threshhold;
+
     Body.setVelocity(ball_body, { x: 0, y: 0 });
     Body.applyForce(
       ball_body,
