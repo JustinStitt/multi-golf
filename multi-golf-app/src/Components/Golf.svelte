@@ -16,6 +16,7 @@
     height = 300;
 
   export let level_data;
+  let level_objects = [];
   export let id = 1;
 
   export let ball_start_pos = { x: 30, y: 30 };
@@ -54,10 +55,10 @@
     x: flag_pos.x,
     y: flag_pos.y,
     d: 25,
-    min_d: 0,
+    min_d: 1,
     velo_adjusted_diameter: 0,
     adjusted_ball_d: 0,
-    collision_scaling: 0.4,
+    collision_scaling: 1.8,
 
     ball_in_flag: function () {
       let dist = distance(this.x, this.y, ball.x, ball.y);
@@ -104,6 +105,8 @@
   let bg;
   let ball_image;
   let flag_image;
+  let brick_image;
+  let brick_shadow_image;
 
   let walls = [];
 
@@ -140,6 +143,11 @@
   };
 
   export const sketch = (p5) => {
+    p5.preload = () => {
+      brick_image = p5.loadImage("canv-brick.png");
+      brick_shadow_image = p5.loadImage("canv-brick-shadow.png");
+    };
+
     p5.setup = () => {
       setup(p5);
     };
@@ -151,7 +159,7 @@
       p5.background(bg);
       flag.draw(p5);
       ball.draw(p5);
-      drawWalls(p5);
+      // drawWalls(p5);
       drawLevelObjects(p5);
       if (mouse_pressed) {
         let v0 = p5.createVector(ball.x, ball.y);
@@ -247,32 +255,52 @@
   const setupLevel = () => {
     // ball_body.position = ball_start_pos;
     if (!level_data) return;
+    resizeLevelObjectImages();
     World.add(world, [...level_data]);
+  };
+
+  const resizeLevelObjectImages = () => {
+    level_objects = [];
+    let bw = brick_image.width,
+      bh = brick_image.height;
+    level_data.forEach((elem) => {
+      let img = canv.createImage(bw, bh);
+      let shadow = canv.createImage(bw, bh);
+      img.copy(brick_image, 0, 0, bw, bh, 0, 0, bw, bh);
+      shadow.copy(brick_shadow_image, 0, 0, bw, bh, 0, 0, bw, bh);
+      let { min, max } = elem.bounds;
+      let w = max.x - min.x;
+      let h = max.y - min.y;
+      img.resize(w, h);
+      shadow.resize(w, h);
+      let to_add = { img: img, shadow: shadow, obj: elem };
+      level_objects.push(to_add);
+    });
   };
 
   const drawLevelObjects = (p5) => {
     if (!level_data) return;
-    let objs = level_data;
+    let objs = level_objects;
     // objs.forEach((elem) => {
     //   var vertices = elem.vertices;
-    //   p5.fill(255);
+    //   p5.fill(255, 0, 0);
     //   p5.beginShape();
     //   for (var i = 0; i < vertices.length; i++) {
     //     p5.vertex(vertices[i].x, vertices[i].y);
     //   }
     //   p5.endShape();
     // });
-    p5.push();
-    p5.fill(240, 248, 255);
-    p5.strokeWeight(2);
-    p5.stroke(0);
     objs.forEach((elem) => {
-      let { min, max } = elem.bounds;
+      let { min, max } = elem.obj.bounds;
       let w = max.x - min.x;
       let h = max.y - min.y;
-      p5.rect(elem.position.x - w / 2, elem.position.y - h / 2, w, h);
+      let x = elem.obj.position.x - w / 2;
+      let y = elem.obj.position.y - h / 2;
+      p5.image(elem.shadow, x, y + 6);
+      p5.strokeWeight(4);
+      p5.rect(x, y, w, h, 6);
+      p5.image(elem.img, x, y);
     });
-    p5.pop();
   };
 
   const drawWalls = (p5) => {

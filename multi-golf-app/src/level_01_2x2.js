@@ -11,7 +11,7 @@ let wall_params = {
 const tile0 = () => {
   let bpos = { x: 150, y: 150 };
   let fpos = { x: 25, y: 90 };
-  let obj1 = Bodies.rectangle(100, 100, 20, 85, wall_params);
+  let obj1 = Bodies.rectangle(100, 100, 75, 85, wall_params);
   return { bpos: bpos, fpos: fpos, objs: [obj1] };
 };
 
@@ -25,14 +25,14 @@ const tile1 = () => {
 const tile2 = () => {
   let bpos = { x: 20, y: 110 };
   let fpos = { x: 275, y: 120 };
-  let obj1 = Bodies.rectangle(100, 100, 20, 185, wall_params);
+  let obj1 = Bodies.rectangle(100, 100, 75, 185, wall_params);
   return { bpos: bpos, fpos: fpos, objs: [obj1] };
 };
 
 const tile3 = () => {
   let bpos = { x: 250, y: 110 };
   let fpos = { x: 100, y: 150 };
-  let obj1 = Bodies.rectangle(200, 100, 20, 85, wall_params);
+  let obj1 = Bodies.rectangle(200, 100, 75, 85, wall_params);
   return { bpos: bpos, fpos: fpos, objs: [obj1] };
 };
 
