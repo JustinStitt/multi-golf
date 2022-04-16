@@ -5,7 +5,7 @@
   import loadLevels from "./levels";
 
   let level_data = loadLevels();
-
+  let strokes = 0;
   let num = 2;
   let current_level = 0;
   $: arr = [...Array(num * num).keys()];
@@ -16,7 +16,15 @@
     current_level = Math.max(current_level, 0);
     current_level = Math.min(level_data.length - 1, current_level);
     arr = [...Array(num * num).keys()];
-    console.log(cl);
+    strokes = 0;
+  };
+
+  const swap_level = () => {
+    current_level = (current_level + 1) % level_data.length;
+  };
+
+  const handleStroke = () => {
+    strokes += 1;
   };
 </script>
 
@@ -37,13 +45,18 @@
             ? { x: 100, y: 100 }
             : level_data[current_level][elem].fpos}
           size={600 / num}
+          on:stroke={handleStroke}
         />
       </span>
     {/each}
   </div>
-  <div style="width: 30%; display: flex; justify-content: space-between">
-    <input type="number" bind:value={current_level} style="margin-top: 10px;" />
-    <input type="number" bind:value={num} style="margin-top: 10px;" />
+  <div
+    style="width: 30%; display: flex; justify-content: space-between; margin-top: 10px;"
+  >
+    <button on:click={swap_level}> Next Level </button>
+    <h3>Stroke: {strokes}</h3>
+    <!-- <input type="number" bind:value={current_level} style="margin-top: 10px;" />
+  <input type="number" bind:value={num} style="margin-top: 10px;" /> -->
   </div>
 
   <!-- <Playground /> -->

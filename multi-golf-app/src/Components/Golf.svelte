@@ -2,7 +2,8 @@
   import P5 from "p5-svelte";
   import * as matter from "matter-js";
   import * as howler from "howler";
-  import { onMount } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
+  const dispatch = createEventDispatcher();
 
   var Engine = matter.Engine;
   var Bodies = matter.Bodies;
@@ -186,7 +187,7 @@
     };
 
     p5.keyPressed = () => {
-      reset();
+      if (p5.keyCode == 82) reset();
     };
   };
 
@@ -322,7 +323,9 @@
       end = mouse_drag.end;
     let dx = start.x - end.x;
     let dy = start.y - end.y;
-    if (Math.abs(dx) + Math.abs(dy) < 13) return;
+    let minimum_drag_distance = 40;
+    if (Math.abs(dx) + Math.abs(dy) < minimum_drag_distance) return;
+    stroke(); // send stroke to App.svelte via dispatch (if we are id 0)
     let threshhold = 2.5;
     let fx = dx / dampening;
     let fy = dy / dampening;
@@ -364,6 +367,13 @@
   onMount(() => {
     mounted = true;
   });
+
+  const stroke = () => {
+    if (id) return;
+    dispatch("stroke", {
+      inc: 1,
+    });
+  };
 </script>
 
 <!-- begin HTML -->
