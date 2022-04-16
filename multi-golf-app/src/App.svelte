@@ -1,15 +1,17 @@
 <script>
   import Golf from "./Components/Golf";
+  import Playground from "./Components/Playground";
 </script>
 
 <main>
   <h1>Multi Golf ⛳</h1>
   <div class="games">
-    <Golf ball_start_pos={{ x: 250, y: 250 }} />
+    <Golf id={0} ball_start_pos={{ x: 250, y: 250 }} />
     <Golf flag_pos={{ x: 145, y: 241 }} />
     <Golf flag_pos={{ x: 55, y: 114 }} />
     <Golf flag_pos={{ x: 200, y: 30 }} />
   </div>
+  <!-- <Playground /> -->
 </main>
 
 <style>

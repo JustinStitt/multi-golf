@@ -1,6 +1,7 @@
 <script>
   import P5 from "p5-svelte";
   import * as matter from "matter-js";
+  import * as howler from "howler";
 
   var Engine = matter.Engine;
   var Bodies = matter.Bodies;
@@ -12,8 +13,13 @@
   export let width = 300,
     height = 300;
 
+  export let id = 1;
+
   export let ball_start_pos = { x: 30, y: 30 };
   export let flag_pos = { x: 100, y: 100 };
+
+  var hit_sound = new Howl({ src: ["hit_01.wav"] });
+  var flag_sound = new Howl({ src: ["in_flag.wav"] });
 
   let canv;
   let ball = {
@@ -44,21 +50,23 @@
   let flag = {
     x: flag_pos.x,
     y: flag_pos.y,
-    d: 16,
+    d: 25,
     min_d: 0,
     velo_adjusted_diameter: 0,
     adjusted_ball_d: 0,
+    collision_scaling: 0.4,
 
     ball_in_flag: function () {
       let dist = distance(this.x, this.y, ball.x, ball.y);
       let total_velo =
         Math.abs(ball_body.velocity.x) + Math.abs(ball_body.velocity.y);
-      this.velo_adjusted_diameter = this.d - total_velo * 3;
+      this.velo_adjusted_diameter =
+        this.d - total_velo * this.collision_scaling;
       this.velo_adjusted_diameter = Math.max(
         this.min_d,
         this.velo_adjusted_diameter
       );
-      this.adjusted_ball_d = ball.d - total_velo * 3;
+      this.adjusted_ball_d = ball.d - total_velo * this.collision_scaling;
       this.adjusted_ball_d = Math.max(this.adjusted_ball_d, 0);
       if (dist < this.velo_adjusted_diameter / 2 + this.adjusted_ball_d / 2) {
         return true;
@@ -95,7 +103,6 @@
   let flag_image;
 
   let walls = [];
-
   export const sketch = (p5) => {
     p5.setup = () => {
       p5.createCanvas(width, height);
@@ -155,6 +162,7 @@
       world.gravity.y = 0;
       matter.Resolver._restingThresh = 0.00001;
       Engine.run(engine);
+      matter.Events.on(engine, "collisionEnd", handleHit);
     }
 
     p5.draw = () => {
@@ -164,18 +172,17 @@
       ball.draw(p5);
       // drawWalls(p5);
       if (mouse_pressed) {
-        p5.line(
-          ball.x,
-          ball.y,
-          ball.x + (mouse_drag.start.x - p5.mouseX),
-          ball.y + (mouse_drag.start.y - p5.mouseY)
-        );
+        // drawArrow2(p5);
+        let v0 = p5.createVector(ball.x, ball.y);
+        let ep_x = (mouse_drag.start.x - p5.mouseX) / 3;
+        let ep_y = (mouse_drag.start.y - p5.mouseY) / 3;
+        let v1 = p5.createVector(ep_x, ep_y);
+        drawArrow(p5, v0, v1);
       }
     };
 
     p5.mousePressed = () => {
       let mpos = { x: p5.mouseX, y: p5.mouseY };
-      if (!mouseInCanvas(mpos)) return;
       mouse_pressed = true;
       // handle mouse
       mouse_drag.start = mpos;
@@ -183,7 +190,6 @@
 
     p5.mouseReleased = () => {
       let mpos = { x: p5.mouseX, y: p5.mouseY };
-      if (!mouseInCanvas(mpos)) return;
       mouse_pressed = false;
       mouse_drag.end = mpos;
       handleMouseDrag();
@@ -192,8 +198,26 @@
 
   let win = false;
   const handleWin = () => {
+    if (win) return;
     win = true;
+    flag_sound.play();
   };
+
+  function drawArrow(p5, base, vec) {
+    let m = vec.mag();
+    let myColor = [132 + m, 245 - m / 2, 66];
+    p5.push();
+    p5.stroke(myColor);
+    p5.strokeWeight(5 + m / 75);
+    p5.fill(myColor);
+    p5.translate(base.x, base.y);
+    p5.line(0, 0, vec.x, vec.y);
+    p5.rotate(vec.heading());
+    let arrowSize = 7;
+    p5.translate(vec.mag() - arrowSize, 0);
+    p5.triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
+    p5.pop();
+  }
 
   const drawWalls = (p5) => {
     walls.forEach((elem) => {
@@ -213,25 +237,32 @@
     let dx = start.x - end.x;
     let dy = start.y - end.y;
     if (Math.abs(dx) + Math.abs(dy) < 13) return;
+    let threshhold = 2.5;
     let fx = dx / dampening;
     let fy = dy / dampening;
+    let total_force = Math.abs(fx) + Math.abs(fy);
+    let sign_x = fx > 0 ? 1 : -1,
+      sign_y = fy > 0 ? 1 : -1;
+    if (Math.abs(fx) > threshhold) fx = sign_x * threshhold;
+    if (Math.abs(fy) > threshhold) fy = sign_y * threshhold;
     Body.setVelocity(ball_body, { x: 0, y: 0 });
     Body.applyForce(
       ball_body,
       { x: ball.x, y: ball.y },
       { x: fx / dampening, y: fy / dampening }
     );
+    if (id == 0) {
+      hit_sound.play();
+    }
   };
 
   const distance = (x1, y1, x2, y2) => {
     return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5;
   };
 
-  const mouseInCanvas = (mpos) => {
-    return true;
-    if (mpos.x < 0 || mpos.x > width) return false;
-    if (mpos.y < 0 || mpos.y > height) return false;
-    return true;
+  const handleHit = (event) => {
+    if (win) return;
+    hit_sound.play();
   };
 </script>
 
