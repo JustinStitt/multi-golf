@@ -55,11 +55,11 @@
   let flag = {
     x: flag_pos.x,
     y: flag_pos.y,
-    d: 25,
+    d: 30,
     min_d: 1,
     velo_adjusted_diameter: 0,
     adjusted_ball_d: 0,
-    collision_scaling: 1.8,
+    collision_scaling: 1.3,
 
     ball_in_flag: function () {
       let dist = distance(this.x, this.y, ball.x, ball.y);
