@@ -4,7 +4,7 @@
   import Playground from "./Components/Playground";
   import loadLevels from "./levels";
 
-  let level_data = loadLevels();
+  let all_level_data = loadLevels();
   let strokes = 0;
   let num = 2;
   let current_level = 0;
@@ -14,13 +14,13 @@
 
   const triggerChange = (cl) => {
     current_level = Math.max(current_level, 0);
-    current_level = Math.min(level_data.length - 1, current_level);
+    current_level = Math.min(all_level_data.length - 1, current_level);
     arr = [...Array(num * num).keys()];
     strokes = 0;
   };
 
   const swap_level = () => {
-    current_level = (current_level + 1) % level_data.length;
+    current_level = (current_level + 1) % all_level_data.length;
   };
 
   const handleStroke = (e) => {
@@ -28,6 +28,9 @@
     if (inc == -1) strokes = 0;
     else strokes += inc;
   };
+
+  $: level_data = all_level_data[current_level].objs;
+  $: meta_data = all_level_data[current_level].meta;
 </script>
 
 <main>
@@ -37,15 +40,13 @@
       <span transition:slide>
         <Golf
           id={elem}
-          level_data={!level_data[current_level][elem]
-            ? [1, 2]
-            : level_data[current_level][elem].objs}
-          ball_start_pos={!level_data[current_level][elem]
+          level_data={!level_data[elem] ? [1, 2] : level_data[elem].objs}
+          ball_start_pos={!level_data[elem]
             ? { x: 170, y: 130 }
-            : level_data[current_level][elem].bpos}
-          flag_pos={!level_data[current_level][elem]
+            : level_data[elem].bpos}
+          flag_pos={!level_data[elem]
             ? { x: 100, y: 100 }
-            : level_data[current_level][elem].fpos}
+            : level_data[elem].fpos}
           size={600 / num}
           on:stroke={handleStroke}
         />
@@ -57,8 +58,7 @@
   >
     <button on:click={swap_level}> Next Level </button>
     <h3>
-      Current Level: {current_level + 1} | Par: {level_data[current_level].meta
-        .par} Stroke: {strokes}
+      Current Level: {current_level + 1} | Par: {meta_data.par} Stroke: {strokes}
     </h3>
     <!-- <input type="number" bind:value={current_level} style="margin-top: 10px;" />
   <input type="number" bind:value={num} style="margin-top: 10px;" /> -->
