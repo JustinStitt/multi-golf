@@ -1,4 +1,5 @@
 <script>
+  import { slide } from "svelte/transition";
   import Golf from "./Components/Golf";
   import Playground from "./Components/Playground";
   import loadLevels from "./levels";
@@ -21,24 +22,30 @@
 
 <main>
   <h1>Multi Golf ⛳</h1>
-  <!-- <div class="games">
-    <Golf id={0} ball_start_pos={{ x: 250, y: 250 }} />
-    <Golf flag_pos={{ x: 145, y: 241 }} />
-    <Golf flag_pos={{ x: 55, y: 114 }} />
-    <Golf flag_pos={{ x: 200, y: 30 }} />
-  </div> -->
   <div class="games" style={`grid-template-columns: ${"1fr ".repeat(num)};`}>
     {#each arr as elem (elem)}
-      <Golf
-        id={elem}
-        level_data={level_data[current_level][elem].objs}
-        ball_start_pos={level_data[current_level][elem].bpos}
-        flag_pos={level_data[current_level][elem].fpos}
-        size={600 / num}
-      />
+      <span transition:slide>
+        <Golf
+          id={elem}
+          level_data={!level_data[current_level][elem]
+            ? [1, 2]
+            : level_data[current_level][elem].objs}
+          ball_start_pos={!level_data[current_level][elem]
+            ? { x: 170, y: 130 }
+            : level_data[current_level][elem].bpos}
+          flag_pos={!level_data[current_level][elem]
+            ? { x: 100, y: 100 }
+            : level_data[current_level][elem].fpos}
+          size={600 / num}
+        />
+      </span>
     {/each}
   </div>
-  <input type="number" bind:value={current_level} style="margin-top: 10px;" />
+  <div style="width: 30%; display: flex; justify-content: space-between">
+    <input type="number" bind:value={current_level} style="margin-top: 10px;" />
+    <input type="number" bind:value={num} style="margin-top: 10px;" />
+  </div>
+
   <!-- <Playground /> -->
 </main>
 

@@ -260,10 +260,12 @@
   };
 
   const resizeLevelObjectImages = () => {
+    if (!level_data) return;
     level_objects = [];
     let bw = brick_image.width,
       bh = brick_image.height;
     level_data.forEach((elem) => {
+      if (!elem.bounds) return;
       let img = canv.createImage(bw, bh);
       let shadow = canv.createImage(bw, bh);
       img.copy(brick_image, 0, 0, bw, bh, 0, 0, bw, bh);
